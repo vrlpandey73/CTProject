@@ -3,6 +3,7 @@
 from bs4 import BeautifulSoup
 import requests
 import time
+import pandas as pd
 
 def rotten_movies():
     
@@ -19,6 +20,11 @@ def rotten_movies():
     time.sleep(2)
     
     return data.text
+
+def punc(movies):
+    for i in range (len(movies)):
+        movies[i] = movies[i].replace('       ',',')
+    return movies 
     
 movies = rotten_movies()
 
@@ -27,6 +33,12 @@ file = open('rotten_movies_data', 'w')
 file.write(f'{movies}\n ')
 
 file.close()
+
+
+
+
+df = pd.read_csv("rotten_movies_data")  
+df.to_csv('D1.csv')
 
 #audience score vs. tomato meter
 #put into csv file, seperte by commas
