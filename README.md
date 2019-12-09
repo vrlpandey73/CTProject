@@ -1,46 +1,92 @@
-# CTProject
+from bs4 import BeautifulSoup 
 
-from bs4 import BeautifulSoup
 import requests
+
 import time
+
 import pandas as pd
 
-def rotten_movies():
-    
-    tomatoes_url = 'https://www.rottentomatoes.com'
+import matplotlib.pyplot as plt
 
-    response = requests.get(tomatoes_url)
+
+
+
+def top_box_office():
+    
+    url = "https://www.rottentomatoes.com/browse/box-office/"
+
+    response = requests.get(url)
 
     html_doc = response.text
 
     soup = BeautifulSoup(html_doc, "lxml")
 
-    data = soup.find('table', class_= 'movie_list', id='Top-Box-Office')
+    table = soup.find('table', class_='center table')
 
-    time.sleep(2)
+    table_rows = table.find_all('tr', itemprop='itemListElement')
+
+    row =[]
+
+    for tr in table_rows:
+
+        td = tr.find_all('td')
+
+        row.append([i.text for i in td])
+
+    time.sleep(3)
+
+    return row
+
+
+def create_dataframe(list):
+
+    for i in list:
+
+        dataframe= pd.DataFrame(list[0:], columns=list[0])
+
+        dataframe.columns = ['This_Week', 'Last_Week', 'Tmeter', 'Title', 'Weeks_Released','Weekend_Gross','Total_Gross', 'Theater_Avg.', '#_of_theater']
+        
+    return dataframe
+
+
+
+x = top_box_office()
+
+print(x)
+
+y = create_dataframe(x)
+y['Weekend_Gross (in millions)'] = y.Weekend_Gross.str.replace(r"[M,$]",'')
+y['Tmeter'] = y['Tmeter'].str.extract('(\d+)', expand=False)
+
+
+y.to_csv('file.csv')
+
     
-    return data.text
+dfx = pd.read_csv('file.csv')
 
-def punc(movies):
-    for i in range (len(movies)):
-        movies[i] = movies[i].replace('       ',',')
-    return movies 
-    
-movies = rotten_movies()
+df_fil = dfx[['Tmeter']]
 
-file = open('rotten_movies_data', 'w')
+print(df_fil.describe())
+'''
+plt.figure()
+y['Weekend_Gross'].hist()
+plt.xlabel('Revenue')
+plt.ylabel('Title')
+plt.savefig('WeekendRev.jpg')
+'''
 
-file.write(f'{movies}\n ')
+#def millions(y['Total_Gross']):
+    #for i in y['Total_Gross']:
+       # if 
+a = dfx['Tmeter']
+plt.ylabel('Ratings in %')
+plt.title('Summary Statistics of Tomato Meter')
+a.plot.box()
 
-file.close()
+y['Tmeter'] = y.Tmeter.astype('int64')
+
+y.loc[y['Tmeter'] > 60,['Tmeter','Title']]
 
 
 
 
-df = pd.read_csv("rotten_movies_data")  
-df.to_csv('D1.csv')
-
-#audience score vs. tomato meter
-#put into csv file, seperte by commas
-#put into dataframe
-#use pandas to visualize
